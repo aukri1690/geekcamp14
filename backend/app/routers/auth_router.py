@@ -81,3 +81,22 @@ async def login(request: LoginRequest):
 @router.get("/me")
 async def get_user_info(user: Dict[str, Any] = Depends(get_current_user)):
     return {"id": user["id"], "email": user["email"]}
+
+
+@router.post("/logout")
+async def logout(response: Response, authorization: Optional[str] = Header(None)):
+    """
+    Supabaseセッションの無効化＋クライアント側Cookie削除
+    """
+    if authorization is None or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization header missing or invalid format")
+
+    token = authorization.removeprefix("Bearer ").strip()
+
+    try:
+        supabase.auth.sign_out()
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        return {"message": "ログアウトしました"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")

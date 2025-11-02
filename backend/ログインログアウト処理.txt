@@ -1,0 +1,58 @@
+フロントエンドで追加してほしい処理
+
+
+
+「ログイン」
+
+
+async function submit(e: React.FormEvent) {
+  e.preventDefault()
+  if (!email || !pw) {
+    alert('メールアドレスとパスワードを入力してください')
+    return
+  }
+
+  const res = await fetch('http://localhost:8000/api/auth/login/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: pw }),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    alert('ログイン失敗: ' + data.detail)
+    return
+  }
+
+  //トークンを保存
+  localStorage.setItem('access_token', data.access_token)
+  
+  router.push('/')
+}
+
+
+「ログアウト」
+
+
+
+export async function logout() {
+  const token = localStorage.getItem("access_token")
+
+  try {
+    await fetch("http://localhost:8000/api/auth/logout/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  } catch (error) {
+    console.error("ログアウトAPI呼び出しエラー:", error)
+  }
+
+  // ローカルに保存されているトークンを削除
+  localStorage.removeItem("access_token")
+
+  // ページ遷移（例：ログイン画面へ）
+  window.location.href = "/login"
+}
