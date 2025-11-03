@@ -1,10 +1,19 @@
-from pydantic import BaseModel, EmailStr
-
+from pydantic import BaseModel
+from typing import Optional
+from datetime import date
 
 class CardCreate(BaseModel):
     name: str
-    message: str
-    image_url: str | None = None
-    user_id: str  # ログインユーザーID
-    card_id: str
-    sns_link:str
+    furigana: str
+    photo_url: Optional[str] = None
+    design_id: Optional[str] = None
+    design_name: Optional[str] = None
+    job: Optional[str] = None
+    student: Optional[str] = None
+    interest: Optional[str] = None
+    goal: Optional[str] = None
+    hobby: Optional[str] = None
+    qualification: Optional[str] = None
+    sns_link: Optional[str] = None
+    free_text: Optional[str] = None
+    birthday: Optional[date] = None
