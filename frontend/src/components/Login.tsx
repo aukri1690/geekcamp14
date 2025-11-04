@@ -1,14 +1,19 @@
-import { Button, Card, Field, Flex, Input, InputGroup, Stack } from "@chakra-ui/react"
+'use client';
+
+import { Button, Card, Field, Flex, Input, InputGroup, Stack, Link } from "@chakra-ui/react"
 import { MdOutlineMailOutline } from "react-icons/md";
 import { IoKeyOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation";
 
-const Auth = () => {
+const Login = () => {
+  const router = useRouter();
+
   return (
     <>
       <Flex justify='center' align='center' minH='100vh'>
         <Card.Root maxW="sm" variant='elevated'>
           <Card.Header justifyContent='center'>
-            <Card.Title>新規ユーザー登録</Card.Title>
+            <Card.Title>ログイン</Card.Title>
           </Card.Header>
           <Card.Body>
             <Stack gap="4" w="full">
@@ -26,8 +31,14 @@ const Auth = () => {
               </Field.Root>
             </Stack>
           </Card.Body>
+          <Card.Title fontSize='sm' fontWeight='normal' textAlign='center' mb={4}>
+            新規ユーザー登録は
+            <Link color='teal.500' ml={1} cursor='pointer' onClick={() => router.push('/auth')}>
+              こちら
+            </Link>
+          </Card.Title>
           <Card.Footer justifyContent="center">
-            <Button variant="solid" colorPalette='teal'>登録</Button>
+            <Button variant="solid" colorPalette='teal'>ログイン</Button>
           </Card.Footer>
         </Card.Root>
       </Flex>
@@ -35,4 +46,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default Login;
