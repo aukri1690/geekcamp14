@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from uuid import uuid4
 from app.db.supabase import supabase
 import jwt
+from datetime import date, datetime
 from app.schemas.main_schema import CardCreate
 from app.core.config import settings
 
@@ -22,44 +23,60 @@ def get_current_user_id(authorization: str = Header(...)) -> str:
         return user_id
     except Exception:
         raise HTTPException(status_code=401, detail="認証エラー")
-    
-# カード作成
+
+
 @router.post("/cards_create")
 async def create_card(card: CardCreate, user_id: str = Depends(get_current_user_id)):
-    card_id = str(uuid4())
-    data = {
-        "card_id": card_id,
-        "user_id": user_id,
-        "name": card.name,
-        "furigana": card.furigana,
-        "photo_url": card.photo_url,
-        "design_id": card.design_id,
-        "design_name": card.design_name,
-        "job": card.job,
-        "student": card.student,
-        "interest": card.interest,
-        "goal": card.goal,
-        "hobby": card.hobby,
-        "qualification": card.qualification,
-        "sns_link": card.sns_link,
-        "free_text": card.free_text,
-        "birthday": card.birthday,
-    }
-    result = supabase.table("cards").insert(data).execute()
+    """
+    認証済みユーザーがカードを作成するエンドポイント
+    """
+    try:
+        # カードID生成
+        card_id = str(uuid4())
 
-    if result.data is None:
-        raise HTTPException(status_code=500, detail="カードの作成に失敗しました")
+        # 辞書化して Supabase に渡すデータを整形
+        data = {
+            "card_id": card_id,
+            "user_id": user_id,
+            "name": card.name,
+            "furigana": card.furigana,
+            "photo_url": card.photo_url,
+            "design_id": card.design_id,
+            "design_name": card.design_name,
+            "job": card.job,
+            "student": card.student,
+            "interest": card.interest,
+            "goal": card.goal,
+            "hobby": card.hobby,
+            "qualification": card.qualification,
+            "sns_link": card.sns_link,
+            "free_text": card.free_text,
+            "birthday": card.birthday,
+        }
 
-    # 公開共有用URL
-    share_url = f"https://yourapp.com/card/{card_id}"  # ←あなたのアプリのURLに変更
+        # Supabaseに送る前に date/datetime を文字列化
+        for key, value in data.items():
+            if isinstance(value, (date, datetime)):
+                data[key] = value.isoformat()
 
-    return {
-        "message": "カードを作成しました",
-        "card_id": card_id,
-        "share_url": share_url,
-    }
+        # Supabaseへ挿入
+        result = supabase.table("cards").insert(data).execute()
 
+        if not result.data:
+            raise HTTPException(status_code=500, detail="カードの作成に失敗しました")
 
+        # 公開用URL（仮）
+        share_url = f"https://yourapp.com/card/{card_id}"
+
+        return {
+            "message": "カードを作成しました",
+            "card_id": card_id,
+            "share_url": share_url,
+            "data": result.data
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"サーバーエラー: {str(e)}")
 
 # カード更新（編集）  #PATCHで部分更新するか検討
 @router.put("/cards/{card_id}")
@@ -69,8 +86,6 @@ async def update_card(card_id: str, card: CardCreate, user_id: str = Depends(get
         raise HTTPException(status_code=404, detail="カードが見つかりません")
     if existing.data[0]["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="編集権限がありません")
-
-    # 更新データ作成（Noneの場合は削除扱い）
     update_data = {
         "name": card.name,
         "furigana": card.furigana,

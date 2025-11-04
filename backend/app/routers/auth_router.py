@@ -52,7 +52,6 @@ async def signup(request: SignupRequest):
         raise HTTPException(status_code=500, detail=f"Sign-up failed: {str(e)}")
 
 
-# --- ログイン ---
 @router.post("/login")
 async def login(request: LoginRequest):
     try:
@@ -61,7 +60,10 @@ async def login(request: LoginRequest):
             "password": request.password,
         })
 
-        if not response.user:
+        # デバッグログを出してみる
+        print("Supabase response:", response)
+
+        if not response or not getattr(response, "user", None):
             raise HTTPException(status_code=401, detail="メールまたはパスワードが違います")
 
         return {
@@ -74,9 +76,10 @@ async def login(request: LoginRequest):
         }
 
     except Exception as e:
+        print("Login error:", str(e))
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
-
-
+    
+    
 # --- 自分の情報取得 ---
 @router.get("/me")
 async def get_user_info(user: Dict[str, Any] = Depends(get_current_user)):
