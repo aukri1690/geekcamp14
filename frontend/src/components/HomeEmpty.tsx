@@ -3,7 +3,7 @@ import { RiErrorWarningLine } from "react-icons/ri";
 
 const HomeEmpty = () => {
   return (
-    <Flex justify="center" align="center" height="100vh">
+    <Flex justify="center" align="center" height="92vh">
     <EmptyState.Root>
       <EmptyState.Content>
         <EmptyState.Indicator>
