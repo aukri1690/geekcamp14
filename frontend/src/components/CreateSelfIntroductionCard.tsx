@@ -2,7 +2,6 @@
 
 import { Button, Card, FileUpload, Flex, IconButton, Image, Input, Menu, Portal, Text } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
-import { BsInstagram } from "react-icons/bs";
 
 const CreateSelfIntroductionCard = () => {
   const [preview, setPreview] = useState<string | null>(null)
