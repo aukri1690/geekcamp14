@@ -218,4 +218,3 @@ async def delete_card_photo(card_id: str, user_id: str = Depends(get_current_use
     supabase.table("cards").update({"photo_url": None}).eq("card_id", card_id).execute()
     
     return {"message": "写真を削除しました"}
-

@@ -1,12 +1,47 @@
 'use client';
 
-import { Button, Card, Field, Flex, Input, InputGroup, Stack, Link } from "@chakra-ui/react"
+import { useState } from "react";
+import { Button, Card, Field, Flex, Input, InputGroup, Stack, Link,Text } from "@chakra-ui/react"
 import { MdOutlineMailOutline } from "react-icons/md";
 import { IoKeyOutline } from "react-icons/io5";
 import { useRouter } from "next/navigation";
 
-const Login = () => {
+const Login: React.FC = () => {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/login', { // Next.jsなら /api/login でバックエンドにプロキシ可能
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.detail || 'ログインに失敗しました');
+        setLoading(false);
+        return;
+      }
+
+      // 成功時:user情報のみ保存して遷移
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      router.push('/home'); // ログイン後の遷移先
+    } catch (err: any) {
+      setError(err.message || '通信エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -20,13 +55,13 @@ const Login = () => {
               <Field.Root>
                 <Field.Label>メールアドレス</Field.Label>
                 <InputGroup startElement={<MdOutlineMailOutline />}>
-                <Input size='lg' variant='subtle' css={{ "--focus-color": "teal" }} placeholder='メールアドレスを入力' />
+                <Input size='lg' variant='subtle' css={{ "--focus-color": "teal" }} placeholder='メールアドレスを入力' value={email}  onChange={(e) => setEmail(e.target.value)}/>
                 </InputGroup>
               </Field.Root>
               <Field.Root>
                 <Field.Label>パスワード</Field.Label>
                 <InputGroup startElement={<IoKeyOutline />}>
-                  <Input size='lg' variant='subtle' css={{ "--focus-color": "teal" }} placeholder='パスワードを入力' />
+                  <Input size='lg' variant='subtle' css={{ "--focus-color": "teal" }} placeholder='パスワードを入力' value={password} onChange={(e) => setPassword(e.target.value)}/>
                 </InputGroup>
               </Field.Root>
             </Stack>
@@ -38,7 +73,7 @@ const Login = () => {
             </Link>
           </Card.Title>
           <Card.Footer justifyContent="center">
-            <Button variant="solid" colorPalette='teal'>ログイン</Button>
+            <Button variant="solid" colorPalette='teal'onClick={handleLogin}>ログイン</Button>
           </Card.Footer>
         </Card.Root>
       </Flex>
