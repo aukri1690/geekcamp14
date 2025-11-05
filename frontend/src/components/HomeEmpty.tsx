@@ -16,7 +16,7 @@ const HomeEmpty = () => {
           <EmptyState.Title>自己紹介カードが作成されていません</EmptyState.Title>
           <EmptyState.Description>今すぐ作成しますか？</EmptyState.Description>
         </VStack>
-        <Button variant='solid' colorPalette='purple' rounded='lg' fontWeight='bold' onClick={() => router.push("/create")}>作成する</Button>
+        <Button variant='solid' colorPalette='teal' rounded='lg' fontWeight='bold' onClick={() => router.push("/create")}>作成する</Button>
       </EmptyState.Content>
     </EmptyState.Root>
     </Flex>
