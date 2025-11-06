@@ -1,20 +1,67 @@
 'use client'
 
-import { Button, Card, FileUpload, Flex, Image, Input, Menu, Portal, Text } from "@chakra-ui/react"
+import { Button, Card, Flex, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react"
+import axios from "axios";
+
+
 
 const CreateSelfIntroductionCard = () => {
+  const [form, setForm] = useState({
+    name: "",
+    furigana: "",
+    job: "",
+    student: "",
+    goal: "",
+    hobby: "",
+    interest: "",
+    qualification: "",
+    free_text: "",
+  });
   const [preview, setPreview] = useState<string | null>(null)
+  const [file, setFile] = useState<File | null>(null);
   const [selected1, setSelected1] = useState<string>('項目1▽')
   const [selected2, setSelected2] = useState<string>('項目2▽')
 
+
   useEffect(() => {
     return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview)
-      }
+      if (preview) URL.revokeObjectURL(preview)
     }
   }, [preview])
+  
+  // 入力変更ハンドラ
+  const handleChange = (key: string, value: string) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  // カード作成 + 写真アップロード
+const handleCreateCard = async () => {
+  try {
+    // 1️⃣ カード作成リクエスト（Cookie送信を許可）
+    const res = await axios.post("/api/create-card", form, {
+      withCredentials: true, // ← 重要！
+    });
+
+    const { card_id } = res.data;
+    alert("カード作成に成功しました！");
+
+    // 2️⃣ 写真アップロード（Cookie送信を許可）
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      await axios.post(`/api/upload-photo?card_id=${card_id}`, formData, {
+        withCredentials: true, // ← 重要！
+      });
+      alert("画像アップロードが完了しました！");
+    }
+  } catch (err: any) {
+    console.error(err);
+    alert(`カード作成に失敗しました。\n${err.response?.data?.error || err.message}`);
+  }
+};
+
 
   return (
     <>
@@ -52,11 +99,12 @@ const CreateSelfIntroductionCard = () => {
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
                 <Text fontSize='sm'>名前</Text>
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3}></Input>
+
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3}onChange={e => handleChange("name", e.target.value)}></Input>
               </Flex>
               <Flex direction='column'>
                 <Text fontSize='sm'>ふりがな</Text>
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }}onChange={e => handleChange("furigana", e.target.value)}></Input>
               </Flex>
             </Flex>
 
@@ -73,6 +121,7 @@ const CreateSelfIntroductionCard = () => {
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected1('誕生日')}>誕生日</Menu.Item>
                         <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>職種</Menu.Item>
+                        <Menu.Item value="student" onClick={() => setSelected1('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected1('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected1('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected1('興味')}>興味</Menu.Item>
@@ -95,6 +144,7 @@ const CreateSelfIntroductionCard = () => {
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected2('誕生日')}>誕生日</Menu.Item>
                         <Menu.Item value="occupation" onClick={() => setSelected2('職種')}>職種</Menu.Item>
+                        <Menu.Item value="student" onClick={() => setSelected2('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected2('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected2('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected2('興味')}>興味</Menu.Item>
@@ -115,7 +165,7 @@ const CreateSelfIntroductionCard = () => {
           </Card.Body>
         </Card.Root>
 
-        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'>作成</Button>
+        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg' onClick={handleCreateCard}>作成</Button>
       </Flex>
     </>
   );
