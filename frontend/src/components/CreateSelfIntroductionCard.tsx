@@ -10,6 +10,7 @@ const CreateSelfIntroductionCard = () => {
   const [form, setForm] = useState({
     name: "",
     furigana: "",
+    birthday:"",
     job: "",
     student: "",
     goal: "",
@@ -22,7 +23,52 @@ const CreateSelfIntroductionCard = () => {
   const [file, setFile] = useState<File | null>(null);
   const [selected1, setSelected1] = useState<string>('項目1▽')
   const [selected2, setSelected2] = useState<string>('項目2▽')
+ 
+  // 🟢 項目1入力ハンドラ
+  const handleInputChange1 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
 
+    const fieldMap: Record<string, keyof typeof form> = {
+      "誕生日": "birthday", // バックにある場合
+      "職種": "job",
+      "学年": "student",
+      "目標": "goal",
+      "趣味": "hobby",
+      "興味": "interest",
+      "保有資格": "qualification",
+    };
+
+    const key = fieldMap[selected1];
+    if (key) {
+      setForm((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    }
+  }; 
+  // 🟢 入力値を更新
+  const handleInputChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // 選択項目 → form のキーに変換
+    const fieldMap: Record<string, keyof typeof form> = {
+      "誕生日": "birthday", 
+      "職種": "job",
+      "学年": "student",
+      "目標": "goal",
+      "趣味": "hobby",
+      "興味": "interest",
+      "保有資格": "qualification",
+    };
+
+    const key = fieldMap[selected2];
+    if (key) {
+      setForm((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -37,9 +83,24 @@ const CreateSelfIntroductionCard = () => {
 
   // カード作成 + 写真アップロード
 const handleCreateCard = async () => {
+  // ✅ 送信データ整形
+    const payload = {
+      name: form.name,
+      furigana: form.furigana,
+      job: form.job || null,
+      student: form.student || null,
+      interest: form.interest || null,
+      goal: form.goal || null,
+      hobby: form.hobby || null,
+      qualification: form.qualification || null,
+      sns_link: null, // 現状フォーム未対応なのでnull
+      free_text: form.free_text || null,
+      birthday: form.birthday || null, // "YYYY-MM-DD"形式 or null
+    };
+
   try {
     // 1️⃣ カード作成リクエスト（Cookie送信を許可）
-    const res = await axios.post("/api/create-card", form, {
+    const res = await axios.post("/api/create-card",   payload, {
       withCredentials: true, // ← 重要！
     });
 
@@ -61,6 +122,7 @@ const handleCreateCard = async () => {
     alert(`カード作成に失敗しました。\n${err.response?.data?.error || err.message}`);
   }
 };
+
 
 
   return (
@@ -125,12 +187,12 @@ const handleCreateCard = async () => {
                         <Menu.Item value="goal" onClick={() => setSelected1('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected1('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected1('興味')}>興味</Menu.Item>
-                        <Menu.Item value="qualifications" onClick={() => setSelected1('保有資格')}>保有資格</Menu.Item>
+                        <Menu.Item value="qualification" onClick={() => setSelected1('保有資格')}>保有資格</Menu.Item>
                       </Menu.Content>
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }} onChange={handleInputChange1}></Input>
               </Flex>
               <Flex align='start' mt={2} ml={-4} direction='column'>
                 <Menu.Root>
@@ -148,18 +210,18 @@ const handleCreateCard = async () => {
                         <Menu.Item value="goal" onClick={() => setSelected2('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected2('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected2('興味')}>興味</Menu.Item>
-                        <Menu.Item value="qualifications" onClick={() => setSelected2('保有資格')}>保有資格</Menu.Item>
+                        <Menu.Item value="qualification" onClick={() => setSelected2('保有資格')}>保有資格</Menu.Item>
                       </Menu.Content>
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }} onChange={handleInputChange2}></Input>
               </Flex>
 
             </Flex>
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
-              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}></Input>
+              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}onChange={e => handleChange("free_text", e.target.value)}></Input>
             </Flex>
 
           </Card.Body>
