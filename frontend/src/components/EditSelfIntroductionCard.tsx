@@ -115,7 +115,7 @@ const EditSelfIntroductionCard = () => {
           </Card.Body>
         </Card.Root>
 
-        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'>作成</Button>
+        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'>保存</Button>
       </Flex>
     </>
   );
