@@ -5,8 +5,8 @@ import React, { useEffect, useState } from "react"
 
 const CreateSelfIntroductionCard = () => {
   const [preview, setPreview] = useState<string | null>(null)
-  const [selected1, setSelected1] = useState<string>('項目1を選択▼')
-  const [selected2, setSelected2] = useState<string>('項目2を選択▼')
+  const [selected1, setSelected1] = useState<string>('項目1▽')
+  const [selected2, setSelected2] = useState<string>('項目2▽')
 
   useEffect(() => {
     return () => {
@@ -22,14 +22,41 @@ const CreateSelfIntroductionCard = () => {
         <Card.Root variant='elevated'>
           <Card.Body>
 
+            <Flex justify='center' direction='column' mb={6}>
+              <FileUpload.Root accept={["image/png", "image/jpeg", "image/webp"]}>
+                <FileUpload.HiddenInput
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const url = URL.createObjectURL(file)
+                      setPreview(url)
+                    }
+                  }}
+                />
+                <FileUpload.Trigger asChild>
+                  <Image
+                    mx="auto"
+                    boxSize='100px'
+                    objectFit='cover'
+                    borderRadius='full'
+                    src={preview ?? "https://i.pravatar.cc/300?img=4"}
+                    alt="Profile image"
+                    cursor="pointer"
+                    transition="transform 0.15s ease"
+                    _hover={{ transform: "scale(1.05)" }}
+                  />
+                </FileUpload.Trigger>
+              </FileUpload.Root>
+            </Flex>
+
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
                 <Text fontSize='sm'>名前</Text>
-                <Input variant='flushed' placeholder='入力してください' w='170px' css={{ "--focus-color": "teal" }} mb={3}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3}></Input>
               </Flex>
               <Flex direction='column'>
                 <Text fontSize='sm'>ふりがな</Text>
-                <Input variant='flushed' placeholder='入力してください' w='170px' css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }}></Input>
               </Flex>
             </Flex>
 
@@ -54,7 +81,7 @@ const CreateSelfIntroductionCard = () => {
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='170px' ml={4} css={{ "--focus-color": "teal" }} placeholder='入力してください'></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}></Input>
               </Flex>
               <Flex align='start' mt={2} ml={-4} direction='column'>
                 <Menu.Root>
@@ -76,39 +103,13 @@ const CreateSelfIntroductionCard = () => {
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='170px' ml={4} css={{ "--focus-color": "teal" }} placeholder='入力してください'></Input>
-              </Flex>
-
-              <Flex direction='column' gap={4}>
-                <FileUpload.Root accept={["image/png", "image/jpeg", "image/webp"]}>
-                  <FileUpload.HiddenInput
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        const url = URL.createObjectURL(file)
-                        setPreview(url)
-                      }
-                    }}
-                  />
-                  <FileUpload.Trigger asChild>
-                    <Image
-                      boxSize='100px'
-                      objectFit='cover'
-                      borderRadius='full'
-                      src={preview ?? "https://i.pravatar.cc/300?img=4"}
-                      alt="Profile image"
-                      cursor="pointer"
-                      transition="transform 0.15s ease"
-                      _hover={{ transform: "scale(1.05)" }}
-                    />
-                  </FileUpload.Trigger>
-                </FileUpload.Root>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}></Input>
               </Flex>
 
             </Flex>
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
-              <Input variant='flushed' w='373px' placeholder='入力してください' css={{ "--focus-color": "teal" }} mb={3}></Input>
+              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}></Input>
             </Flex>
 
           </Card.Body>
