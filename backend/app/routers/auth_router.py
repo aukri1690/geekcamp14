@@ -50,8 +50,6 @@ async def signup(request: SignupRequest):
         #メールの送信までもSupabaseが行ってくれる
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Sign-up failed: {str(e)}")
-
-
 @router.post("/login")
 async def login(request: LoginRequest):
     try:
@@ -60,26 +58,31 @@ async def login(request: LoginRequest):
             "password": request.password,
         })
 
-        # デバッグログを出してみる
-        print("Supabase response:", response)
-
         if not response or not getattr(response, "user", None):
             raise HTTPException(status_code=401, detail="メールまたはパスワードが違います")
+
+        user_id = response.user.id
+
+        # 👇 ログイン後、カードがあるかどうか探索、そこでhas_cradの値が決まる
+        card_result = supabase.table("cards").select("card_id").eq("user_id", user_id).execute()
+        has_card = len(card_result.data) > 0
+        card_id = card_result.data[0]["card_id"] if has_card else None
 
         return {
             "access_token": response.session.access_token,
             "refresh_token": response.session.refresh_token,
             "user": {
-                "id": response.user.id,
+                "id": user_id,
                 "email": response.user.email
-            }
+            },
+            "has_card": has_card,
+            "card_id": card_id
         }
 
     except Exception as e:
         print("Login error:", str(e))
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
-    
-    
+
 # --- 自分の情報取得 ---
 @router.get("/me")
 async def get_user_info(user: Dict[str, Any] = Depends(get_current_user)):

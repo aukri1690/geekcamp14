@@ -35,7 +35,11 @@ const Login: React.FC = () => {
       // 成功時:user情報のみ保存して遷移
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      router.push('/home'); // ログイン後の遷移先
+       if (data.has_card) {
+        router.push('/edit-card'); // すでにカードがある
+      } else {
+        router.push('/home'); // カード未作成
+      }
     } catch (err: any) {
       setError(err.message || '通信エラーが発生しました');
     } finally {
@@ -64,6 +68,9 @@ const Login: React.FC = () => {
                   <Input size='lg' variant='subtle' css={{ "--focus-color": "teal" }} placeholder='パスワードを入力' value={password} onChange={(e) => setPassword(e.target.value)}/>
                 </InputGroup>
               </Field.Root>
+              {error && (
+              <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>
+               )}
             </Stack>
           </Card.Body>
           <Card.Title fontSize='sm' fontWeight='normal' textAlign='center' mb={4}>
