@@ -3,7 +3,7 @@
 import { Button, Card, FileUpload, Flex, Image, Input, Menu, Portal, Text } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 
-const CreateSelfIntroductionCard = () => {
+const EditSelfIntroductionCard = () => {
   const [preview, setPreview] = useState<string | null>(null)
   const [selected1, setSelected1] = useState<string>('項目1を選択▼')
   const [selected2, setSelected2] = useState<string>('項目2を選択▼')
@@ -114,10 +114,10 @@ const CreateSelfIntroductionCard = () => {
           </Card.Body>
         </Card.Root>
 
-        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'>作成</Button>
+        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'>保存</Button>
       </Flex>
     </>
   );
 };
 
-export default CreateSelfIntroductionCard;
+export default EditSelfIntroductionCard;
