@@ -46,6 +46,7 @@ const CreateSelfIntroductionCard = () => {
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected1('誕生日')}>誕生日</Menu.Item>
                         <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>職種</Menu.Item>
+                        <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected1('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected1('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected1('興味')}>興味</Menu.Item>
@@ -68,6 +69,7 @@ const CreateSelfIntroductionCard = () => {
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected2('誕生日')}>誕生日</Menu.Item>
                         <Menu.Item value="occupation" onClick={() => setSelected2('職種')}>職種</Menu.Item>
+                        <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected2('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected2('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected2('興味')}>興味</Menu.Item>
