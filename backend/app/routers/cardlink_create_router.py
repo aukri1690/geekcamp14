@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from uuid import uuid4
 from app.db.supabase import supabase
 import jwt
-from datetime import date, datetime
-from app.schemas.main_schema import CardCreate
+from datetime import date, datetime, timezone
+from app.schemas.main_schema import CardCreate,CardUpdate
 from app.core.config import settings
 
 router = APIRouter()
@@ -65,7 +65,7 @@ async def create_card(card: CardCreate, user_id: str = Depends(get_current_user_
         if not result.data:
             raise HTTPException(status_code=500, detail="カードの作成に失敗しました")
 
-        # 公開用URL（仮）
+        # 公開用URL（仮）デプロイの時に変更
         share_url = f"https://yourapp.com/card/{card_id}"
 
         return {
@@ -77,39 +77,44 @@ async def create_card(card: CardCreate, user_id: str = Depends(get_current_user_
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"サーバーエラー: {str(e)}")
+    
+    
+    
+@router.patch("/cards/{card_id}")
+async def update_card(card_id: str, card: CardUpdate, user_id: str = Depends(get_current_user_id)):
+    """
+    認証済みユーザーが自分のカードを部分更新するエンドポイント
+    """
 
-# カード更新（編集）  #PATCHで部分更新するか検討
-@router.put("/cards/{card_id}")
-async def update_card(card_id: str, card: CardCreate, user_id: str = Depends(get_current_user_id)):
+    # 既存カードの存在確認
     existing = supabase.table("cards").select("*").eq("card_id", card_id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="カードが見つかりません")
+
+    # 自分のカードであるか確認
     if existing.data[0]["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="編集権限がありません")
-    update_data = {
-        "name": card.name,
-        "furigana": card.furigana,
-        "photo_url": card.photo_url,
-        "design_id": card.design_id,
-        "design_name": card.design_name,
-        "job": card.job,
-        "student": card.student,
-        "interest": card.interest,
-        "goal": card.goal,
-        "hobby": card.hobby,
-        "qualification": card.qualification,
-        "sns_link": card.sns_link,
-        "free_text": card.free_text,
-        "birthday": card.birthday,
-        "updated_at": "now()"
-    }
+
+    # 更新データ（指定された項目だけ抽出）
+    update_data = card.dict(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="更新内容がありません")
+
+    # 更新日時の追加
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    # Supabaseへ更新
     result = supabase.table("cards").update(update_data).eq("card_id", card_id).execute()
 
-    if result.data is None:
+    if not result.data:
         raise HTTPException(status_code=500, detail="カードの更新に失敗しました")
 
-    return {"message": "カードを更新しました", "card_id": card_id}
-
+    # 更新後のデータを返す
+    return {
+        "message": "カードを更新しました",
+        "card": result.data[0]
+    }
+    
 # カード削除
 @router.delete("/cards/{card_id}")
 async def delete_card(card_id: str, user_id: str = Depends(get_current_user_id)):

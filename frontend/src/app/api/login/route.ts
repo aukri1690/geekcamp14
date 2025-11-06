@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
     // クライアントから送られてきた JSON ボディを取得
     const body = await req.json();
 
-    // 環境変数から FastAPI URL を取得
+ 
     const backendUrl = process.env.BACKEND_URL;
     if (!backendUrl) {
       console.error('BACKEND_URL is not set in environment variables');
