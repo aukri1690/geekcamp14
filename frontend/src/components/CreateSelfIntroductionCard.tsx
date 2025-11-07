@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Card, Flex, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
+import { Button, Card, Flex, IconButton, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react"
 import axios from "axios";
 
@@ -10,7 +10,7 @@ const CreateSelfIntroductionCard = () => {
   const [form, setForm] = useState({
     name: "",
     furigana: "",
-    birthday:"",
+    birthday: "",
     job: "",
     student: "",
     goal: "",
@@ -23,7 +23,7 @@ const CreateSelfIntroductionCard = () => {
   const [file, setFile] = useState<File | null>(null);
   const [selected1, setSelected1] = useState<string>('項目1▽')
   const [selected2, setSelected2] = useState<string>('項目2▽')
- 
+
   // 🟢 項目1入力ハンドラ
   const handleInputChange1 = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -45,14 +45,14 @@ const CreateSelfIntroductionCard = () => {
         [key]: value,
       }));
     }
-  }; 
+  };
   // 🟢 入力値を更新
   const handleInputChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
     // 選択項目 → form のキーに変換
     const fieldMap: Record<string, keyof typeof form> = {
-      "誕生日": "birthday", 
+      "誕生日": "birthday",
       "職種": "job",
       "学年": "student",
       "目標": "goal",
@@ -75,15 +75,15 @@ const CreateSelfIntroductionCard = () => {
       if (preview) URL.revokeObjectURL(preview)
     }
   }, [preview])
-  
+
   // 入力変更ハンドラ
   const handleChange = (key: string, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
   // カード作成 + 写真アップロード
-const handleCreateCard = async () => {
-  // ✅ 送信データ整形
+  const handleCreateCard = async () => {
+    // ✅ 送信データ整形
     const payload = {
       name: form.name,
       furigana: form.furigana,
@@ -98,39 +98,36 @@ const handleCreateCard = async () => {
       birthday: form.birthday || null, // "YYYY-MM-DD"形式 or null
     };
 
-  try {
-    // 1️⃣ カード作成リクエスト（Cookie送信を許可）
-    const res = await axios.post("/api/create-card",   payload, {
-      withCredentials: true, // ← 重要！
-    });
-
-    const { card_id } = res.data;
-    alert("カード作成に成功しました！");
-
-    // 2️⃣ 写真アップロード（Cookie送信を許可）
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      await axios.post(`/api/upload-photo?card_id=${card_id}`, formData, {
+    try {
+      // 1️⃣ カード作成リクエスト（Cookie送信を許可）
+      const res = await axios.post("/api/create-card", payload, {
         withCredentials: true, // ← 重要！
       });
-      alert("画像アップロードが完了しました！");
+
+      const { card_id } = res.data;
+      alert("カード作成に成功しました！");
+
+      // 2️⃣ 写真アップロード（Cookie送信を許可）
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        await axios.post(`/api/upload-photo?card_id=${card_id}`, formData, {
+          withCredentials: true, // ← 重要！
+        });
+        alert("画像アップロードが完了しました！");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(`カード作成に失敗しました。\n${err.response?.data?.error || err.message}`);
     }
-  } catch (err: any) {
-    console.error(err);
-    alert(`カード作成に失敗しました。\n${err.response?.data?.error || err.message}`);
-  }
-};
-
-
+  };
 
   return (
     <>
       <Flex justify='center' align='center' minH='90vh' direction='column' gap={20}>
         <Card.Root variant='elevated'>
           <Card.Body>
-
             <Flex justify='center' direction='column' mb={6}>
               <FileUpload.Root accept={["image/png", "image/jpeg", "image/webp"]}>
                 <FileUpload.HiddenInput
@@ -157,19 +154,22 @@ const handleCreateCard = async () => {
                 </FileUpload.Trigger>
               </FileUpload.Root>
             </Flex>
-
+            <Flex justify='center' mt={-4} mb={4}>
+              <Image
+                boxSize='24px'
+                src='/instagram_icon.svg'
+              />
+            </Flex>
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
                 <Text fontSize='sm'>名前</Text>
-
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3}onChange={e => handleChange("name", e.target.value)}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3} onChange={e => handleChange("name", e.target.value)}></Input>
               </Flex>
               <Flex direction='column'>
                 <Text fontSize='sm'>ふりがな</Text>
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }}onChange={e => handleChange("furigana", e.target.value)}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} onChange={e => handleChange("furigana", e.target.value)}></Input>
               </Flex>
             </Flex>
-
             <Flex direction='row' gap={8}>
               <Flex align='start' mt={2} ml={-4} direction='column'>
                 <Menu.Root>
@@ -217,13 +217,11 @@ const handleCreateCard = async () => {
                 </Menu.Root>
                 <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }} onChange={handleInputChange2}></Input>
               </Flex>
-
             </Flex>
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
-              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}onChange={e => handleChange("free_text", e.target.value)}></Input>
+              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3} onChange={e => handleChange("free_text", e.target.value)}></Input>
             </Flex>
-
           </Card.Body>
         </Card.Root>
       </Flex>
