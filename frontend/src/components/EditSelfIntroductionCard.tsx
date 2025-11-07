@@ -2,19 +2,103 @@
 
 import { Button, Card, FileUpload, Flex, Image, Input, Menu, Portal, Text } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
+import axios from "axios"
 
 const EditSelfIntroductionCard = () => {
   const [preview, setPreview] = useState<string | null>(null)
+  const [file, setFile] = useState<File | null>(null)
   const [selected1, setSelected1] = useState<string>('項目1▽')
   const [selected2, setSelected2] = useState<string>('項目2▽')
+  const [cardId, setCardId] = useState<string>("") // 編集対象カードID
+  const [form, setForm] = useState({
+    name: "",
+    furigana: "",
+    birthday: "",
+    job: "",
+    student: "",
+    goal: "",
+    hobby: "",
+    interest: "",
+    qualification: "",
+    free_text: "",
+  })
 
+  // 🟢 項目選択に応じたマッピング
+  const fieldMap: Record<string, keyof typeof form> = {
+    "誕生日": "birthday",
+    "職種": "job",
+    "学年": "student",
+    "目標": "goal",
+    "趣味": "hobby",
+    "興味": "interest",
+    "保有資格": "qualification",
+  }
+
+  // 🟢 カード情報取得（例: /api/cards/{id}）
   useEffect(() => {
-    return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview)
+    const fetchCard = async () => {
+      try {
+        const res = await axios.get(`/api/get-card`, { withCredentials: true })
+        setForm(res.data.card)
+        setCardId(res.data.card.card_id)
+        if (res.data.card.photo_url) setPreview(res.data.card.photo_url)
+      } catch (err) {
+        console.error("カード取得失敗:", err)
       }
     }
+    fetchCard()
+  }, [])
+
+  // 🟢 項目1・2入力処理
+  const handleInputChange1 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const key = fieldMap[selected1]
+    if (key) setForm((prev) => ({ ...prev, [key]: e.target.value }))
+  }
+  const handleInputChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const key = fieldMap[selected2]
+    if (key) setForm((prev) => ({ ...prev, [key]: e.target.value }))
+  }
+
+  // 🟢 通常入力（名前、ふりがな、自由記述など）
+  const handleChange = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }))
+  }
+
+  // 🟢 カード更新
+  const handleUpdateCard = async () => {
+    try {
+      const payload = Object.fromEntries(
+        Object.entries(form).filter(([_, v]) => v !== "" && v !== null)
+      )
+
+      const res = await axios.patch(
+        `/api/update-card?card_id=${cardId}`,
+        payload,
+        { withCredentials: true }
+      )
+
+      if (file) {
+        const formData = new FormData()
+        formData.append("file", file)
+        await axios.post(`/api/upload-photo?card_id=${cardId}`, formData, {
+          withCredentials: true,
+        })
+      }
+
+      alert("カードを更新しました！")
+    } catch (err: any) {
+      console.error(err)
+      alert(`更新に失敗しました: ${err.response?.data?.error || err.message}`)
+    }
+  }
+
+  // 🧹 画像URLのクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview)
+    }
   }, [preview])
+
 
   return (
     <>
@@ -52,11 +136,11 @@ const EditSelfIntroductionCard = () => {
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
                 <Text fontSize='sm'>名前</Text>
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3} value={form.name}onChange={(e) => handleChange("name", e.target.value)}></Input>
               </Flex>
               <Flex direction='column'>
                 <Text fontSize='sm'>ふりがな</Text>
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} value={form.name} onChange={(e) => handleChange("name", e.target.value)}></Input>
               </Flex>
             </Flex>
 
@@ -73,6 +157,7 @@ const EditSelfIntroductionCard = () => {
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected1('誕生日')}>誕生日</Menu.Item>
                         <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>職種</Menu.Item>
+                        <Menu.Item value="student" onClick={() => setSelected1('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected1('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected1('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected1('興味')}>興味</Menu.Item>
@@ -81,7 +166,7 @@ const EditSelfIntroductionCard = () => {
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}  value={fieldMap[selected1] ? form[fieldMap[selected1]] || "" : ""}onChange={handleInputChange1}></Input>
               </Flex>
               <Flex align='start' mt={2} ml={-4} direction='column'>
                 <Menu.Root>
@@ -95,6 +180,7 @@ const EditSelfIntroductionCard = () => {
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected2('誕生日')}>誕生日</Menu.Item>
                         <Menu.Item value="occupation" onClick={() => setSelected2('職種')}>職種</Menu.Item>
+                        <Menu.Item value="student" onClick={() => setSelected2('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected2('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected2('趣味')}>趣味</Menu.Item>
                         <Menu.Item value="interest" onClick={() => setSelected2('興味')}>興味</Menu.Item>
@@ -103,19 +189,19 @@ const EditSelfIntroductionCard = () => {
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}  value={fieldMap[selected2] ? form[fieldMap[selected2]] || "" : ""} onChange={handleInputChange2}></Input>
               </Flex>
 
             </Flex>
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
-              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}></Input>
+              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}value={form.name}onChange={(e) => handleChange("name", e.target.value)}></Input>
             </Flex>
 
           </Card.Body>
         </Card.Root>
 
-        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'>保存</Button>
+        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'onClick={handleUpdateCard}>保存</Button>
       </Flex>
     </>
   );
