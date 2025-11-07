@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Card, Flex, IconButton, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
+import { Button, Card, Flex, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react"
 import axios from "axios";
 

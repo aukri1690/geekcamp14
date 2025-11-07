@@ -10,13 +10,13 @@ const TabBar = () => {
     <Flex justify='center' align='center' direction='row' gap={6}>
       <Flex align='center' direction='column'>
         <IconButton variant='ghost' size='2xl' mb={-4}>
-          <FaRegPenToSquare color='teal' onClick={() => router.push("/create")} />
+          <FaRegPenToSquare color='teal' onClick={() => router.push("/edit")} />
         </IconButton>
         <Text fontSize='12px' fontWeight='bold' color='teal'>保存</Text>
       </Flex>
       <Flex align='center' direction='column'>
         <IconButton variant='ghost' size='2xl' mb={-4}>
-          <FaRegShareFromSquare color='teal' onClick={() => router.push("/share")} />
+          <FaRegShareFromSquare color='teal' />
         </IconButton>
         <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
       </Flex>
