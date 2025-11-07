@@ -152,11 +152,13 @@ const CreateSelfIntroductionCard = () => {
                 </FileUpload.Trigger>
               </FileUpload.Root>
             </Flex>
-            <Flex justify='center' mt={-4} mb={4}>
+            <Flex direction='row' justify='center' mt={-4} mb={4} gap={2}>
               <Image
                 boxSize='24px'
                 src='/instagram_icon.svg'
+                mt={2}
               />
+              <Input variant='flushed' w='100px' css={{ "--focus-color": "teal" }} placeholder='ユーザーネーム'></Input>
             </Flex>
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
