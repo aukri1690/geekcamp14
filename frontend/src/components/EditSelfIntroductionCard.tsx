@@ -1,8 +1,10 @@
 'use client'
 
-import { Button, Card, FileUpload, Flex, Image, Input, Menu, Portal, Text } from "@chakra-ui/react"
+import { Button, Card, FileUpload, Flex, IconButton, Image, Input, Menu, Portal, Text } from "@chakra-ui/react"
 import React, { useEffect, useState } from "react"
 import axios from "axios"
+import { FaRegShareFromSquare } from "react-icons/fa6";
+import { FaRegPenToSquare } from "react-icons/fa6";
 
 const EditSelfIntroductionCard = () => {
   const [preview, setPreview] = useState<string | null>(null)
@@ -24,39 +26,39 @@ const EditSelfIntroductionCard = () => {
   })
 
   // 🟢 フィールドマッピング
-const fieldMap: Record<string, keyof typeof form> = {
-  "誕生日": "birthday",
-  "職種": "job",
-  "学年": "student",
-  "目標": "goal",
-  "趣味": "hobby",
-  "興味": "interest",
-  "保有資格": "qualification",
-}
-
-// 🟢 カード情報取得
-useEffect(() => {
-  const fetchCard = async () => {
-    try {
-      const res = await axios.get(`/api/get-card`, { withCredentials: true })
-      const card = res.data.card
-      setForm(card)
-      setCardId(card.card_id)
-      if (card.photo_url) setPreview(card.photo_url)
-
-      // 🟢 自動選択：値が入っているフィールドから選択肢を設定
-      const filledFields = Object.entries(fieldMap)
-        .filter(([label, key]) => card[key]) // 値が存在するもの
-        .map(([label]) => label)
-
-      if (filledFields.length > 0) setSelected1(filledFields[0])
-      if (filledFields.length > 1) setSelected2(filledFields[1])
-    } catch (err) {
-      console.error("カード取得失敗:", err)
-    }
+  const fieldMap: Record<string, keyof typeof form> = {
+    "誕生日": "birthday",
+    "職種": "job",
+    "学年": "student",
+    "目標": "goal",
+    "趣味": "hobby",
+    "興味": "interest",
+    "保有資格": "qualification",
   }
-  fetchCard()
-}, [])
+
+  // 🟢 カード情報取得
+  useEffect(() => {
+    const fetchCard = async () => {
+      try {
+        const res = await axios.get(`/api/get-card`, { withCredentials: true })
+        const card = res.data.card
+        setForm(card)
+        setCardId(card.card_id)
+        if (card.photo_url) setPreview(card.photo_url)
+
+        // 🟢 自動選択：値が入っているフィールドから選択肢を設定
+        const filledFields = Object.entries(fieldMap)
+          .filter(([label, key]) => card[key]) // 値が存在するもの
+          .map(([label]) => label)
+
+        if (filledFields.length > 0) setSelected1(filledFields[0])
+        if (filledFields.length > 1) setSelected2(filledFields[1])
+      } catch (err) {
+        console.error("カード取得失敗:", err)
+      }
+    }
+    fetchCard()
+  }, [])
 
 
   // 🟢 項目1・2入力処理
@@ -81,7 +83,7 @@ useEffect(() => {
         Object.entries(form).filter(([_, v]) => v !== "" && v !== null)
       )
 
-   await axios.patch(`/api/update-card?card_id=${cardId}`, payload, { withCredentials: true });
+      await axios.patch(`/api/update-card?card_id=${cardId}`, payload, { withCredentials: true });
 
       if (file) {
         const formData = new FormData()
@@ -148,7 +150,7 @@ useEffect(() => {
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
                 <Text fontSize='sm'>名前</Text>
-                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3} value={form.name}onChange={(e) => handleChange("name", e.target.value)}></Input>
+                <Input variant='flushed' w='120px' css={{ "--focus-color": "teal" }} mb={3} value={form.name} onChange={(e) => handleChange("name", e.target.value)}></Input>
               </Flex>
               <Flex direction='column'>
                 <Text fontSize='sm'>ふりがな</Text>
@@ -177,7 +179,7 @@ useEffect(() => {
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}  value={fieldMap[selected1] ? form[fieldMap[selected1]] || "" : ""}onChange={handleInputChange1}></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }} value={fieldMap[selected1] ? form[fieldMap[selected1]] || "" : ""} onChange={handleInputChange1}></Input>
               </Flex>
               <Flex align='start' mt={2} ml={-4} direction='column'>
                 <Menu.Root>
@@ -200,18 +202,29 @@ useEffect(() => {
                     </Menu.Positioner>
                   </Portal>
                 </Menu.Root>
-                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }}  value={fieldMap[selected2] ? form[fieldMap[selected2]] || "" : ""} onChange={handleInputChange2}></Input>
+                <Input variant='flushed' w='120px' ml={4} css={{ "--focus-color": "teal" }} value={fieldMap[selected2] ? form[fieldMap[selected2]] || "" : ""} onChange={handleInputChange2}></Input>
               </Flex>
             </Flex>
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
-              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3}value={form.free_text}onChange={(e) => handleChange("free_text", e.target.value)}></Input>
+              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3} value={form.free_text} onChange={(e) => handleChange("free_text", e.target.value)}></Input>
             </Flex>
           </Card.Body>
         </Card.Root>
-
-        <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg'onClick={handleUpdateCard}>保存</Button>
-
+      </Flex>
+      <Flex justify='center' align='center' direction='row' gap={6}>
+        <Flex align='center' direction='column'>
+          <IconButton variant='ghost' size='2xl' mb={-4} onClick={handleUpdateCard}>
+            <FaRegPenToSquare color='teal' />
+          </IconButton>
+          <Text fontSize='12px' fontWeight='bold' color='teal'>保存</Text>
+        </Flex>
+        <Flex align='center' direction='column'>
+          <IconButton variant='ghost' size='2xl' mb={-4}>
+            <FaRegShareFromSquare color='teal' />
+          </IconButton>
+          <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
+        </Flex>
       </Flex>
     </>
   );

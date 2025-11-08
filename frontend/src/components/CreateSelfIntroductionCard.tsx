@@ -1,10 +1,15 @@
 'use client'
 
-import { Button, Card, Flex, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
+import { Button, Card, Flex, IconButton, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react"
 import axios from "axios";
+import { FaRegShareFromSquare } from "react-icons/fa6";
+import { FaRegPenToSquare } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 const CreateSelfIntroductionCard = () => {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     name: "",
     furigana: "",
@@ -104,6 +109,8 @@ const CreateSelfIntroductionCard = () => {
 
       const { card_id } = res.data;
       alert("カード作成に成功しました！");
+
+      router.push("/edit");
 
       // 2️⃣ 写真アップロード（Cookie送信を許可）
       if (file) {
@@ -225,7 +232,20 @@ const CreateSelfIntroductionCard = () => {
           </Card.Body>
         </Card.Root>
       </Flex>
-      <Button variant="solid" colorPalette='teal' fontWeight='bold' size='lg' onClick={handleCreateCard}>作成</Button>
+      <Flex justify='center' align='center' direction='row' gap={6}>
+        <Flex align='center' direction='column'>
+          <IconButton variant='ghost' size='2xl' mb={-4} onClick={handleCreateCard}>
+            <FaRegPenToSquare color='teal'/>
+          </IconButton>
+          <Text fontSize='12px' fontWeight='bold' color='teal'>保存</Text>
+        </Flex>
+        <Flex align='center' direction='column'>
+          <IconButton variant='ghost' size='2xl' mb={-4}>
+            <FaRegShareFromSquare color='teal' />
+          </IconButton>
+          <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
+        </Flex>
+      </Flex>
     </>
   );
 };
