@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react"
 import axios from "axios";
 import { FaRegShareFromSquare } from "react-icons/fa6";
 import { FaRegPenToSquare } from "react-icons/fa6";
+import { FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 const CreateSelfIntroductionCard = () => {
@@ -235,7 +236,7 @@ const CreateSelfIntroductionCard = () => {
       <Flex justify='center' align='center' direction='row' gap={6}>
         <Flex align='center' direction='column'>
           <IconButton variant='ghost' size='2xl' mb={-4} onClick={handleCreateCard}>
-            <FaRegPenToSquare color='teal'/>
+            <FaRegPenToSquare color='teal' />
           </IconButton>
           <Text fontSize='12px' fontWeight='bold' color='teal'>保存</Text>
         </Flex>
@@ -244,6 +245,12 @@ const CreateSelfIntroductionCard = () => {
             <FaRegShareFromSquare color='teal' />
           </IconButton>
           <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
+        </Flex>
+        <Flex align='center' direction='column'>
+          <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => {router.push("/login")}}>
+            <FiLogOut color='teal' />
+          </IconButton>
+          <Text fontSize='12px' fontWeight='bold' color='teal'>ログアウト</Text>
         </Flex>
       </Flex>
     </>
