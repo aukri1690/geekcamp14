@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 const CreateSelfIntroductionCard = () => {
   const router = useRouter();
   const [shareAlert, setShareAlert] = useState<boolean>(false);
+  const [cardId, setCardId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     furigana: "",
@@ -127,6 +128,18 @@ const CreateSelfIntroductionCard = () => {
       alert(`カード作成に失敗しました。\n${err.response?.data?.error || err.message}`);
     }
   };
+   // 🟢 共有URLコピー
+  const handleCopy = async () => {
+    if (!cardId) return;
+    const url = `http://localhost:3000/share/${cardId}`;
+    try {
+    await navigator.clipboard.writeText(url);
+    alert("URLをコピーしました！");
+  } catch (err) {
+    alert("コピーに失敗しました");
+  }
+};
+
 
   return (
     <>
@@ -251,7 +264,7 @@ const CreateSelfIntroductionCard = () => {
             <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => setShareAlert(!shareAlert)}>
               <FaLink color='teal' />
             </IconButton>
-            <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
+            <Text fontSize='12px' fontWeight='bold' color='teal'onClick={handleCopy}>共有</Text>
           </Flex>
         )}
 

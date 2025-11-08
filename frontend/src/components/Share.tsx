@@ -3,9 +3,11 @@
 import { Card, Flex, Image, Link, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react"
 import axios from "axios";
+import { useParams } from "next/navigation"; // URLパラメータ取得用
 
 const Share = () => {
-
+   const params = useParams();
+   const { card_id } = params; // URLの /share/[card_id] で受け取る想定
   const [form, setForm] = useState({
     name: "",
     furigana: "",
@@ -23,7 +25,7 @@ const Share = () => {
   useEffect(() => {
     const fetchCard = async () => {
       try {
-        const res = await axios.get("/api/my-card", { withCredentials: true });
+        const res = await axios.get(`/api/cards/view/${card_id}`);
         const data = res.data;
         if (!data) return;
         setForm(prev => ({
