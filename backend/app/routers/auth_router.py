@@ -88,7 +88,6 @@ async def login(request: LoginRequest):
 async def get_user_info(user: Dict[str, Any] = Depends(get_current_user)):
     return {"id": user["id"], "email": user["email"]}
 
-
 @router.post("/logout")
 async def logout(response: Response, authorization: Optional[str] = Header(None)):
     """
@@ -100,9 +99,16 @@ async def logout(response: Response, authorization: Optional[str] = Header(None)
     token = authorization.removeprefix("Bearer ").strip()
 
     try:
-        supabase.auth.sign_out()
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        # Supabaseでセッションを明示的にサインアウト（v2ではoptional）
+        try:
+            supabase.auth.sign_out()
+        except Exception:
+            pass  # SDKによっては不要 or 未対応のため無視
+
+        # Cookie削除（JWT無効化はクライアント依存）
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path="/")
+
         return {"message": "ログアウトしました"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")

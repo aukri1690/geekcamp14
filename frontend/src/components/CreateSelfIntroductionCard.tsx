@@ -270,11 +270,26 @@ const CreateSelfIntroductionCard = () => {
         )}
 
         <Flex align='center' direction='column'>
-          <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => { router.push("/") }}>
+          <IconButton
+            variant='ghost'
+            size='2xl'
+            mb={-4}
+            onClick={async () => {
+              try {
+                await axios.post("/api/logout", {}, { withCredentials: true });
+                alert("ログアウトしました");
+                router.push("/"); // ✅ 自動遷移
+              } catch (err: any) {
+                alert("ログアウトに失敗しました");
+                console.error(err);
+              }
+            }}
+          >
             <FiLogOut color='teal' />
           </IconButton>
           <Text fontSize='12px' fontWeight='bold' color='teal'>ログアウト</Text>
         </Flex>
+
       </Flex >
     </>
   );
