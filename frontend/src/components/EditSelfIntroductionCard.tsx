@@ -26,6 +26,7 @@ const EditSelfIntroductionCard = () => {
     interest: "",
     qualification: "",
     free_text: "",
+    sns_link:"",
   })
 
   // 🟢 フィールドマッピング
@@ -149,7 +150,7 @@ useEffect(() => {
 
   return (
     <>
-      <Flex justify='center' align='center' minH='90vh' direction='column' gap={20}>
+      <Flex justify='center' align='center' minH='90vh' direction='column' gap={20} >
         <Card.Root variant='elevated'>
           <Card.Body>
             <Flex justify='center' direction='column' mb={6}>
@@ -185,7 +186,7 @@ useEffect(() => {
                 src='/instagram_icon.svg'
                 mt={2}
               />
-              <Input variant='flushed' w='100px' css={{ "--focus-color": "teal" }} placeholder='ユーザーネーム'></Input>
+              <Input variant='flushed' w='100px' css={{ "--focus-color": "teal" }} placeholder='ユーザーネーム' value={form.sns_link??""} onChange={e => handleChange("sns_link", e.target.value)}></Input>
             </Flex>
             <Flex direction='row' gap={8}>
               <Flex direction='column'>
