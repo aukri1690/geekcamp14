@@ -171,89 +171,110 @@ async def view_card(card_id: str):
 
     return public_card
 
-
-
-@router.post("/upload_photo/{card_id}")
+# -------------------------
+# アップロード用
+# -------------------------
+@router.post("/cards/{card_id}/photo")
 async def upload_photo(card_id: str, file: UploadFile, user_id: str = Depends(get_current_user_id)):
     try:
         file_ext = file.filename.split(".")[-1]
         file_name = f"{card_id}/{uuid4()}.{file_ext}"
 
-        # 画像アップロード
-        res = supabase.storage.from_("card_photos").upload(file_name, await file.read())
-
-        if not res or res.get("error"):
-            raise HTTPException(status_code=500, detail="画像のアップロードに失敗しました")
-
-        # 公開URL取得
-        public_url = supabase.storage.from_("card_photos").get_public_url(file_name)
-
-        # 🆕 DB の photo_url を更新
-        update_res = (
-            supabase.table("cards")
-            .update({"photo_url": public_url})
-            .eq("card_id", card_id)
-            .eq("user_id", user_id)  # セキュリティ確保
-            .execute()
+        # ストレージにアップロード（metadata付き）
+        res = supabase.storage.from_("card_photos").upload(
+            file_name,
+            await file.read(),
+            {"metadata": {"owner": user_id}}
         )
+        if res.get("error"):
+            raise HTTPException(status_code=500, detail=f"Upload failed: {res['error']['message']}")
 
-        if not update_res or len(update_res.data) == 0:
+        public_url = supabase.storage.from_("card_photos").get_public_url(file_name)["publicUrl"]
+
+        # DB更新
+        update_res = supabase.table("cards").update(
+            {"photo_url": public_url, "user_id": user_id}
+        ).eq("card_id", card_id).execute()
+
+        if not update_res.data:
             raise HTTPException(status_code=404, detail="カードが見つかりません")
 
-        return {
-            "message": "Upload success",
-            "photo_url": public_url,
-        }
+        return {"message": "Upload success", "photo_url": public_url}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-#写真更新
-@router.put("/cards/{card_id}/photo")
+
+# -------------------------
+# 更新用
+# -------------------------
+@router.put("/upload_photo/{card_id}/photo")
 async def update_card_photo(card_id: str, file: UploadFile, user_id: str = Depends(get_current_user_id)):
-    # カード取得
     existing = supabase.table("cards").select("*").eq("card_id", card_id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="カードが見つかりません")
-    
     if existing.data[0]["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="編集権限がありません")
-    
-    # 上書き用ファイル名（固定1枚）
+
     file_ext = file.filename.split(".")[-1]
     file_name = f"{card_id}/photo.{file_ext}"
-    
-    # Storageに上書きアップロード
-    res = supabase.storage.from_("card_photos").upload(file_name, await file.read(), {"upsert": True})
-    if res.status_code != 200:
-        raise HTTPException(status_code=500, detail="アップロードに失敗しました")
-    
-    # URLは固定
-    public_url = f"https://{settings.SUPABASE_URL}/storage/v1/object/public/card_photos/{file_name}"
-    
-    # DB更新
-    supabase.table("cards").update({"photo_url": public_url}).eq("card_id", card_id).execute()
-    
+
+    # 上書きアップロード（metadata付き）
+    res = supabase.storage.from_("card_photos").upload(
+        file_name,
+        await file.read(),
+        {"upsert": True, "metadata": {"owner": user_id}}
+    )
+    if res.get("error"):
+        raise HTTPException(status_code=500, detail=f"Upload failed: {res['error']['message']}")
+
+    public_url = supabase.storage.from_("card_photos").get_public_url(file_name)["publicUrl"]
+
+    supabase.table("cards").update({"photo_url": public_url, "user_id": user_id}).eq("card_id", card_id).execute()
+
     return {"message": "写真を更新しました", "photo_url": public_url}
 
 
+@router.get("/{card_id}/photo")
+async def get_card_photo(card_id: str):
+    card = supabase.table("cards").select("*").eq("card_id", card_id).execute()
+    if not card.data:
+        raise HTTPException(status_code=404, detail="カードが見つかりません")
+    
+    return {"photo_url": card.data[0].get("photo_url")}
 
-#写真削除
+
+
+
+
+# -------------------------
+# 削除用
+# -------------------------
 @router.delete("/cards/{card_id}/photo")
 async def delete_card_photo(card_id: str, user_id: str = Depends(get_current_user_id)):
     existing = supabase.table("cards").select("*").eq("card_id", card_id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="カードが見つかりません")
-    
     if existing.data[0]["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="削除権限がありません")
-    
+
     photo_url = existing.data[0].get("photo_url")
     if photo_url:
         path = photo_url.split("/object/public/card_photos/")[-1]
         supabase.storage.from_("card_photos").remove([path])
-    
+
     # DBのphoto_urlをNULLに
-    supabase.table("cards").update({"photo_url": None}).eq("card_id", card_id).execute()
-    
+    supabase.table("cards").update({"photo_url": None, "user_id": user_id}).eq("card_id", card_id).execute()
+
     return {"message": "写真を削除しました"}
+
+
+# -------------------------
+# 閲覧用
+# -------------------------
+@router.get("/cards/{card_id}/photo")
+async def get_card_photo(card_id: str):
+    card = supabase.table("cards").select("photo_url").eq("card_id", card_id).execute()
+    if not card.data:
+        raise HTTPException(status_code=404, detail="カードが見つかりません")
+    return {"photo_url": card.data[0].get("photo_url")}

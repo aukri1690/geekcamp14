@@ -118,7 +118,7 @@ const CreateSelfIntroductionCard = () => {
         const formData = new FormData();
         formData.append("file", file);
 
-        await axios.post(`/api/upload-photo?card_id=${card_id}`, formData, {
+        await axios.post(`/api/upload-card/${card_id}/photo`, formData, {
           withCredentials: true, // ← 重要！
         });
         alert("画像アップロードが完了しました！");
@@ -190,7 +190,7 @@ const CreateSelfIntroductionCard = () => {
                     <Menu.Positioner>
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected1('誕生日')}>誕生日</Menu.Item>
-                        <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>職種</Menu.Item>
+                        <Menu.Item value="job" onClick={() => setSelected1('職種')}>職種</Menu.Item>
                         <Menu.Item value="student" onClick={() => setSelected1('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected1('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected1('趣味')}>趣味</Menu.Item>
@@ -213,7 +213,7 @@ const CreateSelfIntroductionCard = () => {
                     <Menu.Positioner>
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected2('誕生日')}>誕生日</Menu.Item>
-                        <Menu.Item value="occupation" onClick={() => setSelected2('職種')}>職種</Menu.Item>
+                        <Menu.Item value="job" onClick={() => setSelected2('職種')}>職種</Menu.Item>
                         <Menu.Item value="student" onClick={() => setSelected2('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected2('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected2('趣味')}>趣味</Menu.Item>
