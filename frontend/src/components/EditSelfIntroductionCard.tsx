@@ -5,8 +5,11 @@ import React, { useEffect, useState } from "react"
 import axios from "axios"
 import { FaRegShareFromSquare } from "react-icons/fa6";
 import { FaRegPenToSquare } from "react-icons/fa6";
+import { FiLogOut } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 
 const EditSelfIntroductionCard = () => {
+  const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [selected1, setSelected1] = useState<string>('項目1▽')
@@ -224,6 +227,12 @@ const EditSelfIntroductionCard = () => {
             <FaRegShareFromSquare color='teal' />
           </IconButton>
           <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
+        </Flex>
+        <Flex align='center' direction='column'>
+          <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => {router.push("/login")}}>
+            <FiLogOut color='teal' />
+          </IconButton>
+          <Text fontSize='12px' fontWeight='bold' color='teal'>ログアウト</Text>
         </Flex>
       </Flex>
     </>
