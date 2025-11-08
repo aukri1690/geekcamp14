@@ -3,14 +3,13 @@
 import { Button, Card, Flex, IconButton, Input, Image, Menu, Portal, Text, FileUpload } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react"
 import axios from "axios";
-import { FaRegShareFromSquare } from "react-icons/fa6";
-import { FaRegPenToSquare } from "react-icons/fa6";
+import { FaLink, FaRegCircleCheck, FaRegPenToSquare } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
 const CreateSelfIntroductionCard = () => {
   const router = useRouter();
-
+  const [shareAlert, setShareAlert] = useState<boolean>(false);
   const [form, setForm] = useState({
     name: "",
     furigana: "",
@@ -240,19 +239,29 @@ const CreateSelfIntroductionCard = () => {
           </IconButton>
           <Text fontSize='12px' fontWeight='bold' color='teal'>保存</Text>
         </Flex>
+        {shareAlert ? (
+          <Flex align='center' direction='column'>
+            <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => setShareAlert(!shareAlert)}>
+              <FaRegCircleCheck color='teal' />
+            </IconButton>
+            <Text fontSize='12px' fontWeight='bold' color='teal'>完了</Text>
+          </Flex>
+        ) : (
+          <Flex align='center' direction='column'>
+            <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => setShareAlert(!shareAlert)}>
+              <FaLink color='teal' />
+            </IconButton>
+            <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
+          </Flex>
+        )}
+
         <Flex align='center' direction='column'>
-          <IconButton variant='ghost' size='2xl' mb={-4}>
-            <FaRegShareFromSquare color='teal' />
-          </IconButton>
-          <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
-        </Flex>
-        <Flex align='center' direction='column'>
-          <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => {router.push("/login")}}>
+          <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => { router.push("/login") }}>
             <FiLogOut color='teal' />
           </IconButton>
           <Text fontSize='12px' fontWeight='bold' color='teal'>ログアウト</Text>
         </Flex>
-      </Flex>
+      </Flex >
     </>
   );
 };
