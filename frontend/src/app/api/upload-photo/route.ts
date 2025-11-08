@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     // ✅ バックエンド (FastAPI) に転送
     const res = await fetch(
-      `http://localhost:8000/api/cardlink/upload_photo/${card_id}`,
+      `http://localhost:8000/api/cardlink/upload_photo/${card_id}/photo`,
       {
         method: "POST",
         headers: {

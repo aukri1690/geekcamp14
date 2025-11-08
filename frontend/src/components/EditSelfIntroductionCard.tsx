@@ -38,9 +38,7 @@ const EditSelfIntroductionCard = () => {
     "興味": "interest",
     "保有資格": "qualification",
   }
-
-  // 🟢 カード情報取得
-  useEffect(() => {
+useEffect(() => {
     const fetchCard = async () => {
       try {
         const res = await axios.get(`/api/get-card`, { withCredentials: true })
@@ -49,21 +47,53 @@ const EditSelfIntroductionCard = () => {
         setCardId(card.card_id)
         if (card.photo_url) setPreview(card.photo_url)
 
-        // 🟢 自動選択：値が入っているフィールドから選択肢を設定
-        const filledFields = Object.entries(fieldMap)
-          .filter(([label, key]) => card[key]) // 値が存在するもの
-          .map(([label]) => label)
+        // ✅ 保存済みの選択状態を復元（カードIDが必要なのでここで実行）
+        const saved1 = localStorage.getItem(`selected1_${card.card_id}`)
+        const saved2 = localStorage.getItem(`selected2_${card.card_id}`)
+        if (saved1) setSelected1(saved1)
+        if (saved2) setSelected2(saved2)
 
-        if (filledFields.length > 0) setSelected1(filledFields[0])
-        if (filledFields.length > 1) setSelected2(filledFields[1])
+        // 🟢 保存がなければ、値が存在するフィールドから自動選択
+        if (!saved1 || !saved2) {
+          const filledFields = Object.entries(fieldMap)
+            .filter(([_, key]) => card[key])
+            .map(([label]) => label)
+          if (!saved1 && filledFields.length > 0) setSelected1(filledFields[0])
+          if (!saved2 && filledFields.length > 1) setSelected2(filledFields[1])
+        }
       } catch (err) {
         console.error("カード取得失敗:", err)
       }
     }
     fetchCard()
   }, [])
-
-
+  // -----------------------
+  // 画像取得
+  // -----------------------
+  useEffect(() => {
+    const fetchPhoto = async () => {
+      if (!cardId) return;
+      try {
+        const res = await axios.get(`/api/get-photo`, {
+        params: { card_id: cardId }, // ← cardId は useState などで保持している値
+        });
+        setPreview(res.data.photo_url ?? "/initial_green_icon.png");
+      } catch (err) {
+        console.error("画像取得失敗:", err);
+        setPreview("/initial_green_icon.png");
+      }
+    };
+    fetchPhoto();
+  }, [cardId]);
+   // 🟢 選択状態を localStorage に保存
+  const handleSelect1 = (label: string) => {
+    setSelected1(label)
+    if (cardId) localStorage.setItem(`selected1_${cardId}`, label)
+  }
+  const handleSelect2 = (label: string) => {
+    setSelected2(label)
+    if (cardId) localStorage.setItem(`selected2_${cardId}`, label)
+  }
   // 🟢 項目1・2入力処理
   const handleInputChange1 = (e: React.ChangeEvent<HTMLInputElement>) => {
     const key = fieldMap[selected1]
@@ -78,22 +108,26 @@ const EditSelfIntroductionCard = () => {
   const handleChange = (key: string, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
-
-  // 🟢 カード更新
+ // -----------------------
+  // カード更新
+  // -----------------------
   const handleUpdateCard = async () => {
     try {
       const payload = Object.fromEntries(
         Object.entries(form).filter(([_, v]) => v !== "" && v !== null)
       )
 
+      // カード本体更新
       await axios.patch(`/api/update-card?card_id=${cardId}`, payload, { withCredentials: true });
 
+      // 画像アップロード
       if (file) {
         const formData = new FormData()
         formData.append("file", file)
-        await axios.post(`/api/upload-photo/${cardId}`, formData, {
-          withCredentials: true,
-        })
+         const res = await axios.post(`/api/upload-card/${cardId}/photo`, formData, {
+        withCredentials: true,
+      })
+        if (res.data.photo_url) setPreview(res.data.photo_url)
       }
 
       alert("カードを更新しました！")
@@ -103,7 +137,9 @@ const EditSelfIntroductionCard = () => {
     }
   }
 
-  // 🧹 画像URLのクリーンアップ
+  // -----------------------
+  // 画像URLのクリーンアップ
+  // -----------------------
   useEffect(() => {
     return () => {
       if (preview) URL.revokeObjectURL(preview)
@@ -122,6 +158,7 @@ const EditSelfIntroductionCard = () => {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const file = e.target.files?.[0]
                     if (file) {
+                      setFile(file)
                       const url = URL.createObjectURL(file)
                       setPreview(url)
                     }
@@ -172,7 +209,7 @@ const EditSelfIntroductionCard = () => {
                     <Menu.Positioner>
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected1('誕生日')}>誕生日</Menu.Item>
-                        <Menu.Item value="occupation" onClick={() => setSelected1('職種')}>職種</Menu.Item>
+                        <Menu.Item value="job" onClick={() => setSelected1('職種')}>職種</Menu.Item>
                         <Menu.Item value="student" onClick={() => setSelected1('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected1('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected1('趣味')}>趣味</Menu.Item>
@@ -195,7 +232,7 @@ const EditSelfIntroductionCard = () => {
                     <Menu.Positioner>
                       <Menu.Content>
                         <Menu.Item value="birthday" onClick={() => setSelected2('誕生日')}>誕生日</Menu.Item>
-                        <Menu.Item value="occupation" onClick={() => setSelected2('職種')}>職種</Menu.Item>
+                        <Menu.Item value="job" onClick={() => setSelected2('職種')}>職種</Menu.Item>
                         <Menu.Item value="student" onClick={() => setSelected2('学年')}>学年</Menu.Item>
                         <Menu.Item value="goal" onClick={() => setSelected2('目標')}>目標</Menu.Item>
                         <Menu.Item value="hobby" onClick={() => setSelected2('趣味')}>趣味</Menu.Item>
@@ -210,7 +247,7 @@ const EditSelfIntroductionCard = () => {
             </Flex>
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
-              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3} value={form.free_text} onChange={(e) => handleChange("free_text", e.target.value)}></Input>
+              <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3} value={form.free_text ?? ""} onChange={(e) => handleChange("free_text", e.target.value)}></Input>
             </Flex>
           </Card.Body>
         </Card.Root>
