@@ -5,3 +5,10 @@ supabase: Client = create_client(
     settings.SUPABASE_URL,
     settings.SUPABASE_KEY
 )
+
+
+supabase_service: Client = create_client(
+    settings.SUPABASE_URL,
+    settings.SUPABASE_SERVICE_KEY
+)
+

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends,Header, UploadFile
 from pydantic import BaseModel
 from uuid import uuid4
 from app.db.supabase import supabase
+from app.db.supabase import supabase_service
 import jwt
 from datetime import date, datetime, timezone
 from app.schemas.main_schema import CardCreate,CardUpdate
@@ -14,7 +15,10 @@ router = APIRouter()
 from supabase import create_client
 
 def get_supabase_for_user(token: str) -> Client:
-    return create_client(settings.SUPABASE_URL, token)
+    # anonキーを使い、Authorizationヘッダを付与
+    supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+    supabase.postgrest.auth(token)  # ここでユーザートークンを付与
+    return supabase
 
 # JWTからユーザーIDを取得
 def get_current_user_id(authorization: str = Header(...)) -> str:
@@ -108,7 +112,7 @@ async def update_card(card_id: str, card: CardUpdate, user_id: str = Depends(get
 
     # 更新データ（指定された項目だけ抽出）
     update_data = card.dict(exclude_unset=True)
-    print("🧩 Update data:", update_data)
+    print(" Update data:", update_data)
     if not update_data:
         raise HTTPException(status_code=400, detail="更新内容がありません")
 
@@ -223,18 +227,14 @@ async def update_card_photo(
     file: UploadFile = File(...),
     authorization: str = Header(...)
 ):
-    # JWTからuser_id取得
     user_id = get_current_user_id(authorization)
-
-    # RLS対応のユーザークライアントでSupabase取得
     supabase_user = get_supabase_for_user(authorization.split(" ")[1])
 
     # --- カード存在確認 ---
     existing = supabase_user.table("cards").select("*").eq("card_id", card_id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="カードが見つかりません")
-    
-    # --- 所有者チェック ---
+
     if existing.data[0]["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="編集権限がありません")
 
@@ -242,20 +242,26 @@ async def update_card_photo(
     file_ext = file.filename.split(".")[-1]
     file_name = f"{card_id}/photo.{file_ext}"
 
-    # --- ファイルアップロード (RLSユーザー権限で) ---
+    # --- Storageアップロード（service_roleクライアントで行う） ---
+    storage = supabase_service.storage.from_("card_photos")
+
     try:
-        upload_response = supabase_user.storage.from_("card_photos").upload(
+        storage.remove([file_name])  # 上書き対応
+    except Exception:
+        pass
+
+    try:
+        upload_response = storage.upload(
             file_name,
             await file.read(),
-            {"content-type": file.content_type},
-            upsert=True  # 上書き対応
+            {"content-type": file.content_type}
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
     # --- 公開URL取得 ---
     try:
-        public_url = supabase_user.storage.from_("card_photos").get_public_url(file_name)["publicUrl"]
+        public_url = storage.get_public_url(file_name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"URL取得に失敗: {str(e)}")
 
@@ -265,9 +271,11 @@ async def update_card_photo(
         if not update_result.data:
             raise HTTPException(status_code=500, detail="カードの更新に失敗しました")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DB更新エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"DB更新失敗: {str(e)}")
 
-    return {"message": "写真を更新しました", "photo_url": public_url}
+    return {"photo_url": public_url}
+
+
 @router.get("/{card_id}/photo")
 async def get_card_photo(card_id: str):
     card = supabase.table("cards").select("*").eq("card_id", card_id).execute()
