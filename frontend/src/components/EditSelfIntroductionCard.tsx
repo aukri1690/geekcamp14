@@ -238,7 +238,7 @@ const EditSelfIntroductionCard = () => {
         {shareAlert ? (
           <Flex align='center' direction='column'>
             <IconButton variant='ghost' size='2xl' mb={-4} onClick={() => setShareAlert(!shareAlert)}><FaRegCircleCheck color='teal' /></IconButton>
-            <Text fontSize='12px' fontWeight='bold' color='teal'>完了</Text>
+            <Text fontSize='12px' fontWeight='bold' color='teal'>コピー完了</Text>
           </Flex>
         ) : (
           <Flex align='center' direction='column'>
