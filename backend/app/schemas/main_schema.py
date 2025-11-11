@@ -17,6 +17,8 @@ class CardCreate(BaseModel):
     sns_link: Optional[str] = None
     free_text: Optional[str] = None
     birthday: Optional[date] = None
+    selected1: Optional[str] = None
+    selected2: Optional[str] = None
     
 class CardUpdate(BaseModel):
     name: Optional[str] = None
@@ -33,3 +35,5 @@ class CardUpdate(BaseModel):
     sns_link: Optional[str] = None
     free_text: Optional[str] = None
     birthday: Optional[str] = None
+    selected1: Optional[str] = None
+    selected2: Optional[str] = None

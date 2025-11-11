@@ -91,48 +91,39 @@ async def create_card(card: CardCreate, user_id: str = Depends(get_current_user_
         raise HTTPException(status_code=500, detail=f"サーバーエラー: {str(e)}")
     
     
-    
+ 
 @router.patch("/cards/{card_id}")
 async def update_card(card_id: str, card: CardUpdate, user_id: str = Depends(get_current_user_id)):
-    """
-    認証済みユーザーが自分のカードを部分更新するエンドポイント
-    """
+    """認証済みユーザーが自分のカードを部分更新するエンドポイント"""
     print("📩 PATCH request received:", card_id, card.dict())
 
-    # 既存カードの存在確認
     existing = supabase.table("cards").select("*").eq("card_id", card_id).execute()
-    print("🧾 Existing card:", existing.data)
-
     if not existing.data:
         raise HTTPException(status_code=404, detail="カードが見つかりません")
 
-    # 自分のカードであるか確認
     if existing.data[0]["user_id"] != user_id:
         raise HTTPException(status_code=403, detail="編集権限がありません")
 
-    # 更新データ（指定された項目だけ抽出）
     update_data = card.dict(exclude_unset=True)
-    print(" Update data:", update_data)
+    print("🛠 update_data:", update_data)
+
     if not update_data:
         raise HTTPException(status_code=400, detail="更新内容がありません")
 
-    # 更新日時の追加
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
 
-    # Supabaseへ更新
     result = supabase.table("cards").update(update_data).eq("card_id", card_id).execute()
-   # 更新後データを再取得（明示的に select）
+
     updated_card = supabase.table("cards").select("*").eq("card_id", card_id).execute()
-
-    print("📤 Supabase update result:", updated_card)
-
     if not updated_card.data:
         raise HTTPException(status_code=500, detail="カードの更新に失敗しました")
 
     return {
-    "message": "カードを更新しました",
-    "card": updated_card.data[0],
-   }
+        "message": "カードを更新しました",
+        "card": updated_card.data[0],
+    }
+
+
 
 @router.get("/cards/me")
 async def get_my_card(user_id: str = Depends(get_current_user_id)):
@@ -160,19 +151,17 @@ async def delete_card(card_id: str, user_id: str = Depends(get_current_user_id))
     supabase.table("cards").delete().eq("card_id", card_id).execute()
     return {"message": "カードを削除しました", "card_id": card_id}
 
-
-#全ユーザが閲覧可能
 @router.get("/cards/view/{card_id}")
 async def view_card(card_id: str):
+    """全ユーザ閲覧用カード"""
     result = supabase.table("cards").select("*").eq("card_id", card_id).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="カードが見つかりません")
-    
-    card = result.data[0]
 
-    public_card = {
-        "name": card["name"],
-        "furigana": card["furigana"],
+    card = result.data[0]
+    return {
+        "name": card.get("name"),
+        "furigana": card.get("furigana"),
         "photo_url": card.get("photo_url"),
         "design_id": card.get("design_id"),
         "design_name": card.get("design_name"),
@@ -185,9 +174,9 @@ async def view_card(card_id: str):
         "sns_link": card.get("sns_link"),
         "free_text": card.get("free_text"),
         "birthday": card.get("birthday"),
+        "selected1": card.get("selected1"),  # ←追加
+        "selected2": card.get("selected2"),  # ←追加
     }
-
-    return public_card
 
 # -------------------------
 # アップロード用

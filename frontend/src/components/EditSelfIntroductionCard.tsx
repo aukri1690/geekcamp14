@@ -52,12 +52,17 @@ const EditSelfIntroductionCard = () => {
 
       if (card.photo_url) setPreview(card.photo_url);
 
-      // 選択項目復元 or 自動設定
-      const saved1 = localStorage.getItem(`selected1_${card.card_id}`);
-      const saved2 = localStorage.getItem(`selected2_${card.card_id}`);
+      // ✅ DBに保存された selected1, selected2 を反映
+      if (card.selected1) setSelected1(card.selected1);
+      if (card.selected2) setSelected2(card.selected2);
 
-      setSelected1(saved1 || Object.keys(fieldMap).find(k => card[fieldMap[k]]) || "項目1▽");
-      setSelected2(saved2 || Object.keys(fieldMap).filter(k => card[fieldMap[k]] && k !== (saved1 || ""))[0] || "項目2▽");
+      // DBになければ、従来の自動設定ロジックを使用
+      if (!card.selected1 || !card.selected2) {
+        const saved1 = localStorage.getItem(`selected1_${card.card_id}`);
+        const saved2 = localStorage.getItem(`selected2_${card.card_id}`);
+        setSelected1(saved1 || Object.keys(fieldMap).find(k => card[fieldMap[k]]) || "項目1▽");
+        setSelected2(saved2 || Object.keys(fieldMap).filter(k => card[fieldMap[k]] && k !== (saved1 || ""))[0] || "項目2▽");
+      }
 
     } catch (err) {
       console.error("カード取得失敗:", err);
@@ -109,11 +114,16 @@ const EditSelfIntroductionCard = () => {
   }
 
   // -----------------------
-  // カード更新
+  // カード更新（★ 修正版）
   // -----------------------
   const handleUpdateCard = async () => {
     try {
-      const payload = Object.fromEntries(Object.entries(form).filter(([_, v]) => v !== "" && v !== null));
+      // ✅ DBに保存するため selected1, selected2 をpayloadに含める
+      const payload = {
+        ...Object.fromEntries(Object.entries(form).filter(([_, v]) => v !== "" && v !== null)),
+        selected1,
+        selected2,
+      };
 
       // カード本体更新
       await axios.patch(`/api/update-card?card_id=${cardId}`, payload, { withCredentials: true });
@@ -143,7 +153,7 @@ const EditSelfIntroductionCard = () => {
 
   return (
     <>
-      <Flex justify='center' align='center' minH='90vh' direction='column' gap={20} >
+      <Flex justify='center' align='center' minH='90vh' direction='column' gap={20}  >
         <Card.Root variant='elevated'>
           <Card.Body>
             <Flex justify='center' direction='column' mb={6}>
@@ -219,7 +229,7 @@ const EditSelfIntroductionCard = () => {
               })}
             </Flex>
 
-            {/* 自由記述 */}
+         
             <Flex direction='column' mt={4}>
               <Text fontSize='sm'>自由記述</Text>
               <Input variant='flushed' w='270px' css={{ "--focus-color": "teal" }} mb={3} value={form.free_text ?? ""} onChange={e => handleChange("free_text", e.target.value)} />
@@ -228,7 +238,7 @@ const EditSelfIntroductionCard = () => {
         </Card.Root>
       </Flex>
 
-      {/* 保存・共有・ログアウト */}
+   
       <Flex justify='center' align='center' direction='row' gap={6}>
         <Flex align='center' direction='column'>
           <IconButton variant='ghost' size='2xl' mb={-4} onClick={handleUpdateCard}><FaRegPenToSquare color='teal' /></IconButton>
@@ -247,7 +257,7 @@ const EditSelfIntroductionCard = () => {
                 <IconButton variant='ghost' size='2xl' mb={-4}>
                   <FaLink color='teal' />
                 </IconButton>
-            </Clipboard.Trigger>
+              </Clipboard.Trigger>
             </Clipboard.Root>
             <Text fontSize='12px' fontWeight='bold' color='teal'>共有</Text>
           </Flex>

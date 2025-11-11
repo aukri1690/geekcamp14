@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, Flex, Image, Link, Text } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
 
@@ -20,18 +20,22 @@ const Share = () => {
     qualification: "",
     free_text: "",
     sns_link: "",
+    selected1: "",
+    selected2: "",
   });
 
   const [preview, setPreview] = useState<string | null>(null);
 
-  const fieldPriority: (keyof typeof form)[] = [
-    "birthday", "job", "student", "goal", "hobby", "interest", "qualification"
-  ];
-
-  const [item1, item2] = useMemo(() => {
-    const filled = fieldPriority.filter(key => form[key]);
-    return [filled[0] ? form[filled[0]] : null, filled[1] ? form[filled[1]] : null];
-  }, [form]);
+  // ✅ 表示ラベル → DBフィールド の対応表
+  const fieldMap: Record<string, keyof typeof form> = {
+    "誕生日": "birthday",
+    "職種": "job",
+    "学年": "student",
+    "目標": "goal",
+    "趣味": "hobby",
+    "興味": "interest",
+    "保有資格": "qualification",
+  };
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -53,6 +57,8 @@ const Share = () => {
           qualification: data.qualification ?? "",
           free_text: data.free_text ?? "",
           sns_link: data.sns_link ?? "",
+          selected1: data.selected1 ?? "",
+          selected2: data.selected2 ?? "",
         });
 
         if (data.photo_url) setPreview(data.photo_url);
@@ -63,6 +69,16 @@ const Share = () => {
     fetchCard();
   }, [card_id]);
 
+  // 項目1・項目2の表示値（selected1, selected2に基づく）
+  const item1 =
+    form.selected1 && fieldMap[form.selected1]
+      ? form[fieldMap[form.selected1]] || ""
+      : "";
+  const item2 =
+    form.selected2 && fieldMap[form.selected2]
+      ? form[fieldMap[form.selected2]] || ""
+      : "";
+
   useEffect(() => {
     return () => {
       if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
@@ -71,7 +87,7 @@ const Share = () => {
 
   return (
     <Flex justify="center" align="center" minH="100vh" direction="column" gap={6}>
-      <Card.Root variant="elevated">
+      <Card.Root variant="elevated"w="100%"maxW="270px"mx="auto" >
         <Card.Body>
           <Flex justify="center" direction="column" mb={6}>
             <Image
@@ -85,10 +101,15 @@ const Share = () => {
             />
           </Flex>
 
+          {/* SNSリンク */}
           {form.sns_link && (
             <Flex justify="center" mb={4}>
               <Link
-                href={form.sns_link.startsWith("http") ? form.sns_link : `https://www.instagram.com/${form.sns_link}`}
+                href={
+                  form.sns_link.startsWith("http")
+                    ? form.sns_link
+                    : `https://www.instagram.com/${form.sns_link}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -97,30 +118,43 @@ const Share = () => {
             </Flex>
           )}
 
+          {/* 名前・ふりがな */}
           <Flex direction={{ base: "column", md: "row" }} gap={8} mb={4}>
             <Flex direction="column">
-              <Text fontSize="sm" color="gray.500">名前</Text>
+              <Text fontSize="sm" color="gray.500">
+                名前
+              </Text>
               <Text fontSize="md">{form.name || "未設定"}</Text>
             </Flex>
             <Flex direction="column">
-              <Text fontSize="sm" color="gray.500">ふりがな</Text>
+              <Text fontSize="sm" color="gray.500">
+                ふりがな
+              </Text>
               <Text fontSize="md">{form.furigana || "未設定"}</Text>
             </Flex>
           </Flex>
 
+          {/* ✅ 項目1・2（selected1 / selected2反映版） */}
           <Flex direction={{ base: "column", md: "row" }} gap={8} mb={4}>
             <Flex direction="column">
-              <Text fontSize="sm" color="gray.500">項目1</Text>
+              <Text fontSize="sm" color="gray.500">
+                {form.selected1 || "項目1"}
+              </Text>
               <Text fontSize="md">{item1 || "未設定"}</Text>
             </Flex>
             <Flex direction="column">
-              <Text fontSize="sm" color="gray.500">項目2</Text>
+              <Text fontSize="sm" color="gray.500">
+                {form.selected2 || "項目2"}
+              </Text>
               <Text fontSize="md">{item2 || "未設定"}</Text>
             </Flex>
           </Flex>
 
+          {/* 自由記述 */}
           <Flex direction="column" mt={2}>
-            <Text fontSize="sm" color="gray.500">自由記述</Text>
+            <Text fontSize="sm" color="gray.500">
+              自由記述
+            </Text>
             <Text fontSize="md">{form.free_text || "なし"}</Text>
           </Flex>
         </Card.Body>
